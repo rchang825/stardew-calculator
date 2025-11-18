@@ -27,13 +27,13 @@ export function plantSeeds(cohort, farm) {
   let plantable = crops[cohort.crop].growthDays < farm.daysLeftOfSeason;
   if (plantable) {
     if(numPlanting > farm.plantSpace) {
-      let unplantable = {
+      let notPlantable = {
         quantity: numPlanting - farm.plantSpace,
         crop: cohort.crop,
         state: 'seed',
         age: 0,
       };
-      newCohorts.push(unplantable);
+      newCohorts.push(notPlantable);
       numPlanting = farm.plantSpace;
     }
     cohort.state = 'plant';
