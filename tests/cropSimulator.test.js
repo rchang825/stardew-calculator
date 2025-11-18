@@ -11,7 +11,7 @@ let makeFarm = (dayOfSeason) => {
       casks: 0,
       plantSpace: 1,
       season: 'summer',
-      dayOfSeason: 0,
+      dayOfSeason: dayOfSeason,
       daysLeftOfSeason: 27 - dayOfSeason,
       daysLeftOverall: 30,
       minDaysLeft: function() {
@@ -53,5 +53,12 @@ describe('plantseeds', () => {
     const newCohorts = plantSeeds(cohort, farm);
     expect(newCohorts.length).toEqual(2);
     expect(newCohorts.map((cohort) => cohort.state).sort()).toEqual(['plant', 'seed']);
+  });
+  it ('only plants seeds if there is enough time', () => {
+    const farm = makeFarm(20);
+    const cohort = {quantity: 1, crop: 'hops', state: 'seed', age: 0};
+    const newCohorts = plantSeeds(cohort, farm);
+    expect(newCohorts.length).toEqual(1);
+    expect(newCohorts[0].state).toEqual('seed');
   });
 });
