@@ -20,22 +20,34 @@ const crops = {
 };
 
 export function plantSeeds(cohort, farm) {
-  if(cohort.quantity > farm.plantSpace) {
+  let numPlanting = cohort.quantity;
+  let newCohorts = [];
+  if(numPlanting > farm.plantSpace) {
     // split plantable into new cohort of plants
+
     // only age that plant cohort
     // keep unplantable as seeds, age 0
+    let unplantable = {
+      quantity: numPlanting - farm.plantSpace,
+      crop: cohort.crop,
+      state: 'seed',
+      age: 0,
+    };
+    newCohorts.push(unplantable);
+    numPlanting = farm.plantSpace;
     // return list of new cohorts (plant cohort + seeds cohort)
   }
   cohort.state = 'plant';
   cohort.age = 1;
-  farm.plantSpace = farm.plantSpace - cohort.quantity;
-  return [cohort];
+  farm.plantSpace = farm.plantSpace - numPlanting;
+  newCohorts.push(cohort);
+  return newCohorts;
 };
 
 function agePlants(cohort, farm, data) {
   let finalCohorts = [];
   // plantSeeds checks there's enough time, so no need to validate if enough time to grow
-  
+
   // if at produce age, turn into produce
   const makesProduceAtAges = [data.growthDays];
   if(data.regrowthDays) {
@@ -56,7 +68,7 @@ function agePlants(cohort, farm, data) {
     // remove cohort
     farm.plantSpace = farm.plantSpace - cohort.quantity;
   }
-  
+
   return finalCohorts;
 };
 
@@ -103,10 +115,10 @@ export function simulate() {
   const diary = [];
   let cohorts = [];
   const farm = {
-    kegs: kegs, 
-    casks: casks, 
-    plantSpace: plantSpace, 
-    season: season, 
+    kegs: kegs,
+    casks: casks,
+    plantSpace: plantSpace,
+    season: season,
     dayOfSeason: dayOfSeason,
     daysLeftOfSeason: 27 - dayOfSeason,
     daysLeftOverall: days,
