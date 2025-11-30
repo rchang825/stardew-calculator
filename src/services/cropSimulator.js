@@ -1,4 +1,4 @@
-import { nextSeason } from '../utils/nextSeason';
+import { nextSeason } from '../utils/nextSeason.js';
 const crops = {
   hops: {
     growthDays: 11,
@@ -142,6 +142,7 @@ export function simulate() {
       if(this.dayOfSeason === 27) {
         this.dayOfSeason = 0;
         this.daysLeftOfSeason = 27;
+        this.season = nextSeason(this.season);
       } else {
         this.dayOfSeason++;
         this.daysLeftOfSeason--;
