@@ -1,5 +1,5 @@
+import { nextSeason } from '../../src/utils/nextSeason.js';
 export function buildFarm ({traits = [], season = null, dayOfSeason = null, kegs = null, casks = null, plantSpace = null, daysLeftOverall = null} = {}) {
-  const seasons = ['spring', 'summer', 'fall', 'winter'];
   const newFarm = {kegs: 0,
       casks: 0,
       plantSpace: 1,
@@ -39,7 +39,7 @@ export function buildFarm ({traits = [], season = null, dayOfSeason = null, kegs
           this.dayOfSeason = 0;
           this.daysLeftOfSeason = 27;
           // change season if necessary
-          this.season = seasons[seasons.indexOf(this.season) + 1 % 4];
+          this.season = nextSeason(this.season);
         } else {
           this.dayOfSeason++;
           this.daysLeftOfSeason--;

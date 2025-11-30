@@ -52,4 +52,13 @@ describe('plantseeds', () => {
     expect(newCohorts.length).toEqual(1);
     expect(newCohorts[0].state).toEqual('seed');
   });
+  it ('plants cross-season seeds if there is enough time in the next season', () => {
+    const farm = buildFarm({dayOfSeason: 27, daysLeftOverall: 30});
+    const cohort = buildCohort({traits: ['seed'], crop: 'corn'});
+    const newCohorts = plantSeeds(cohort, farm);
+    expect(newCohorts.length).toEqual(1);
+    expect(newCohorts[0].state).toEqual('plant');
+    expect(newCohorts[0].age).toEqual(1);
+    expect(farm.plantSpace).toEqual(0);
+  });
 });

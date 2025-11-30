@@ -1,3 +1,4 @@
+import { nextSeason } from '../utils/nextSeason.js';
 const crops = {
   hops: {
     growthDays: 11,
@@ -17,6 +18,15 @@ const crops = {
     caskDays: 56,
     seasons: ['spring', 'summer', 'fall']
   },
+  corn: {
+    growthDays: 14,
+    regrowthDays: 4,
+    basePrice: 50,
+    kegMinutes: 3000,
+    jarMinutes: 1500,
+    caskDays: 42,
+    seasons: ['summer', 'fall']
+  },
 };
 
 export function plantSeeds(cohort, farm) {
@@ -25,9 +35,9 @@ export function plantSeeds(cohort, farm) {
   const crop = crops[cohort.crop];
   // validate season (including cross-season)
   if (crop.seasons.includes(farm.season)) {
-    const daysLeft = Math.min(farm.daysLeftOverall, farm.daysLeftOfSeason);
-    let plantable = crop.growthDays < daysLeft;
-    if (plantable) {
+    let crossSeason = crop.seasons.includes(nextSeason(farm.season)) ? 27 : 0;
+    const daysLeft = Math.min(farm.daysLeftOverall, farm.daysLeftOfSeason + crossSeason);
+    if (crop.growthDays < daysLeft) {
       if(numPlanting > farm.plantSpace) {
         let notPlantable = {
           quantity: numPlanting - farm.plantSpace,
