@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigate, } from 'react-router-dom';
 import Nav from './components/Nav';
 import Home from './pages/Home';
 import QuantityNeededCalculator from './pages/QuantityNeededCalculator';
+import CropProfitsCalculator from './pages/CropProfitsCalculator';
 
 function App() {
   const location = useLocation();
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/quantity-needed" element={<QuantityNeededCalculator />} />
+        <Route path="/crop-profits" element={<CropProfitsCalculator />} />
       </Routes>
     </div>
   );

@@ -6,6 +6,7 @@ function Nav() {
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/quantity-needed">Quantity Needed Calculator</a></li>
+        <li><a href="/crop-profits">Crop Profits Calculator</a></li>
       </ul>
     </nav>
   );
