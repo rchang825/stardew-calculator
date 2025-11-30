@@ -1,4 +1,4 @@
-import { nextSeason } from '../utils/nextSeason.js';
+import { nextSeason } from '../utils/nextSeason';
 const crops = {
   hops: {
     growthDays: 11,

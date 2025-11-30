@@ -1,4 +1,4 @@
-import { nextSeason } from '../../src/utils/nextSeason.js';
+import { nextSeason } from '../../src/utils/nextSeason';
 export function buildFarm ({traits = [], season = null, dayOfSeason = null, kegs = null, casks = null, plantSpace = null, daysLeftOverall = null} = {}) {
   const newFarm = {kegs: 0,
       casks: 0,

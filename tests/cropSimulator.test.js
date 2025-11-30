@@ -2,12 +2,22 @@ import { expect, test, describe, it } from 'vitest';
 import { simulate, plantSeeds } from '../src/services/cropSimulator';
 import { buildCohort } from './factories/cohorts';
 import { buildFarm } from './factories/farms';
+import { nextSeason } from '../src/utils/nextSeason';
 
 test("runs successfully", () => {
   expect(simulate()).toBe(true);
 });
 
-describe('plantseeds', () => {
+describe('nextSeason', () => {
+  it('returns the next season correctly', () => {
+    expect(nextSeason('spring')).toEqual('summer');
+    expect(nextSeason('summer')).toEqual('fall');
+    expect(nextSeason('fall')).toEqual('winter');
+    expect(nextSeason('winter')).toEqual('spring');
+  });
+});
+
+describe('plantSeeds', () => {
   it('does not plant seeds that are not of the current season', () => {
     const farm = buildFarm({dayOfSeason: 1, daysLeftOverall: 1, season: 'winter'});
     const cohort = buildCohort({traits: ['seed']})
