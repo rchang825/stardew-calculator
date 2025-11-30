@@ -1,3 +1,4 @@
+import { nextSeason } from '../utils/nextSeason.js';
 const crops = {
   hops: {
     growthDays: 11,
@@ -17,28 +18,40 @@ const crops = {
     caskDays: 56,
     seasons: ['spring', 'summer', 'fall']
   },
+  corn: {
+    growthDays: 14,
+    regrowthDays: 4,
+    basePrice: 50,
+    kegMinutes: 3000,
+    jarMinutes: 1500,
+    caskDays: 42,
+    seasons: ['summer', 'fall']
+  },
 };
 
 export function plantSeeds(cohort, farm) {
   let numPlanting = cohort.quantity;
   let newCohorts = [];
-  // check if there is enough time to plant any seeds
-  // TODO: consider cross season crops
-  let plantable = crops[cohort.crop].growthDays < farm.daysLeftOfSeason;
-  if (plantable) {
-    if(numPlanting > farm.plantSpace) {
-      let notPlantable = {
-        quantity: numPlanting - farm.plantSpace,
-        crop: cohort.crop,
-        state: 'seed',
-        age: 0,
-      };
-      newCohorts.push(notPlantable);
-      numPlanting = farm.plantSpace;
+  const crop = crops[cohort.crop];
+  // validate season (including cross-season)
+  if (crop.seasons.includes(farm.season)) {
+    let crossSeason = crop.seasons.includes(nextSeason(farm.season)) ? 27 : 0;
+    const daysLeft = Math.min(farm.daysLeftOverall, farm.daysLeftOfSeason + crossSeason);
+    if (crop.growthDays < daysLeft) {
+      if(numPlanting > farm.plantSpace) {
+        let notPlantable = {
+          quantity: numPlanting - farm.plantSpace,
+          crop: cohort.crop,
+          state: 'seed',
+          age: 0,
+        };
+        newCohorts.push(notPlantable);
+        numPlanting = farm.plantSpace;
+      }
+      cohort.state = 'plant';
+      cohort.age = 1;
+      farm.plantSpace = farm.plantSpace - numPlanting;
     }
-    cohort.state = 'plant';
-    cohort.age = 1;
-    farm.plantSpace = farm.plantSpace - numPlanting;
   }
   newCohorts.push(cohort);
   return newCohorts;
@@ -69,7 +82,6 @@ function agePlants(cohort, farm, data) {
     // remove cohort
     farm.plantSpace = farm.plantSpace - cohort.quantity;
   }
-
   return finalCohorts;
 };
 
@@ -130,6 +142,7 @@ export function simulate() {
       if(this.dayOfSeason === 27) {
         this.dayOfSeason = 0;
         this.daysLeftOfSeason = 27;
+        this.season = nextSeason(this.season);
       } else {
         this.dayOfSeason++;
         this.daysLeftOfSeason--;
