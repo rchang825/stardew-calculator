@@ -22,23 +22,26 @@ const crops = {
 export function plantSeeds(cohort, farm) {
   let numPlanting = cohort.quantity;
   let newCohorts = [];
-  // check if there is enough time to plant any seeds
-  // TODO: consider cross season crops
-  let plantable = crops[cohort.crop].growthDays < farm.daysLeftOfSeason;
-  if (plantable) {
-    if(numPlanting > farm.plantSpace) {
-      let notPlantable = {
-        quantity: numPlanting - farm.plantSpace,
-        crop: cohort.crop,
-        state: 'seed',
-        age: 0,
-      };
-      newCohorts.push(notPlantable);
-      numPlanting = farm.plantSpace;
+  const crop = crops[cohort.crop];
+  // validate season (including cross-season)
+  if (crop.seasons.includes(farm.season)) {
+    const daysLeft = Math.min(farm.daysLeftOverall, farm.daysLeftOfSeason);
+    let plantable = crop.growthDays < daysLeft;
+    if (plantable) {
+      if(numPlanting > farm.plantSpace) {
+        let notPlantable = {
+          quantity: numPlanting - farm.plantSpace,
+          crop: cohort.crop,
+          state: 'seed',
+          age: 0,
+        };
+        newCohorts.push(notPlantable);
+        numPlanting = farm.plantSpace;
+      }
+      cohort.state = 'plant';
+      cohort.age = 1;
+      farm.plantSpace = farm.plantSpace - numPlanting;
     }
-    cohort.state = 'plant';
-    cohort.age = 1;
-    farm.plantSpace = farm.plantSpace - numPlanting;
   }
   newCohorts.push(cohort);
   return newCohorts;
@@ -69,7 +72,6 @@ function agePlants(cohort, farm, data) {
     // remove cohort
     farm.plantSpace = farm.plantSpace - cohort.quantity;
   }
-
   return finalCohorts;
 };
 
