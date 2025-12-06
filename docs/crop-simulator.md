@@ -6,12 +6,16 @@ Calculate max profit earnable by a target day given a starting scenario (seeds, 
 ## Overview
 This program simulates a number of days in Stardew Valley. Each day it greedily improves as many items as it can in order to maximize profit by the end of the simulation period.
 
-This simulator groups improvable items into **Cohorts** (same name, phase, age, quality, etc.) then simulates each day by /aging/ each cohort when possible. Aging can be simple (increment age for a grape in a keg) or more involved (reserve plantable farm space, create cohort of plants, remove planted count from seed cohort quantity).
+This simulator groups improvable items into **Cohorts** (same name, phase, age, quality, etc.) then simulates each day by *aging* each cohort when possible. Aging can be simple (e.g. "increment age for a grape in a keg") or more involved (e.g. "reserve plantable farm space, create cohort of plants, remove planted count from seed cohort quantity").
 
-Aspects of the environment and farm (e.g. machines and plantable space available; the day, season, and weather) are managed by the **Farm** object. Reference data about each type of crop (like days to grow and base price) are available in the **Almanac** object. The simulator returns the total sell price of the final day's cohorts.
+Aspects of the environment and farm are managed by the **Farm** object. This includes inventory of machines and plantable space, the day, season, and weather.
+
+Reference data about each type of crop including growth time, base price, and plantable season are available in the **Almanac** object.
+
+The simulator returns the total sell price of the cohorts as of the final day.
 
 ## Cohort
-A group of identical items: of the same crop, in the same phase for the same number of days. Quantity indicates number of items in the cohort. 
+A group of identical items: of the same crop in the same phase for the same number of days.
 
 Example:
 ```
@@ -23,7 +27,7 @@ Example:
 - `crop` (string): crop identifier string
 - `phase` (string): phase identifier string (seed, plant, produce, jar, keg, cask)
 - `age` (int): number of days cohort has been in this phase. Age resets to 0 on the day a cohort changes phases, and is 1 at the beginning of the first full day in a phase. Always 0 for phases that don't age (i.e. produce or seed).
-- `quality`: (Todo: not yet implemented)
+- `quality`: *not yet implemented*
 
 ## Aging
 The aging process models the **overnight** improvement of crops and goods. The simulator assumes that the most profitable actions were taken during the day. Aging may create additional cohorts to hold produced items or to split the cohort into different phases.
@@ -39,6 +43,13 @@ The aging logic only plants if there are enough days to produce at least one mor
 
 If there are not enough plantable farm spaces for the seed cohort, the cohort must be split. See *Splitting Cohorts*.
 
+TODO: Agriculturist (Farming lvl 10) makes crops grow 10% faster
+
+Almanac crop data needed:
+- growthDays
+- regrowthDays
+- seasons
+
 ### Aging Plants
 Plant cohorts age by incrementing their `age` until the next season. At the end of the season, the plants die and the cohort is no longer relevant, unless the crop is cross-season and supports the next season.
 
@@ -48,6 +59,12 @@ If the crop is single-harvest, the plant cohort can be deleted as it is no longe
 
 If the crop is multi-harvest, the plant cohort is not deleted as it will continue to create produce on later days.
 
+TODO: Agriculturist (Farming lvl 10) makes crops grow 10% faster
+
+Almanac crop data needed:
+- growthDays
+- regrowthDays
+- seasons
 
 ### Aging Produce
 Produce can be inserted into a compatible machine (e.g. a keg or preserve jar), 1 produce per machine. This creates a new `keg` or `jar` phase cohort, with a quantity matching the produce inserted.  Not-in-machine produce cohorts remain age 0 and do not age, similar to seeds.
@@ -58,6 +75,10 @@ Produce is not inserted into machines if there are not enough days to produce an
 
 If there are not enough machines for the produce cohort, the cohort must be split. See *Splitting Cohorts*.
 
+Almanac crop data needed:
+- kegMinutes
+- jarMinutes
+
 ### Aging Jars and Kegs
 Jar and keg cohorts age by incrementing their `age` until the artisan good is produced. The time required varies by machine and by crop.
 
@@ -65,12 +86,19 @@ When goods are produced, the simulator creates a new artisan good cohort of the 
 
 The simulator frees up the the jars or kegs so that more produce can be inserted. 
 
+Almanac crop data needed:
+- kegMinutes
+- jarMinutes
+
 ### Aging Artisan Goods
 Certain artisan goods can be inserted into casks, 1 good per cask, resulting in a new cask phase cohort, with a quantity matching the goods inserted.  Not-in-cask goods cohorts remain age 0 and do not age, similar to seeds and produce.
 
 Goods are not inserted into casks if there is not enough time left in the simulation to improve the good.
 
 If there are not enough casks for the artisan good cohort, the cohort must be split. See *Splitting Cohorts*.
+
+Almanac crop data needed:
+- caskDays
 
 ### Aging Casks
 Cask cohorts age by incrementing their `age` until reaching iridium quality, at which point they convert into iridium quality artisan goods.
@@ -80,6 +108,9 @@ If the cask improves the good on the current day, the simulator updates the qual
 When iridium is reached or if not enough days remain the before end of simulation to improve quality, the cohort is converted back to an artisan good cohort, and the casks are freed up for other goods. 
 
 On the last day of the simulation, any filled casks are treated the same as an artisan good cohort of the same quality.
+
+Almanac crop data needed:
+- caskDays
 
 ## Phase Processing Order
 Aging plants can free up plantable farm space, which is needed by seeds, so plants are aged before seeds to avoid extra work. This also avoids potentially double-aging newly-planted plants.
@@ -109,8 +140,75 @@ If cohort quantity is greater than machines available, the cohort must be split 
 If cohort quantity is greater than casks available, the cohort must be split into a cask cohort and a goods cohort for the remaining goods. The new cask cohort's age should be set to 1 (age 0 of the cask is the day good was inserted) so that on Day 2 the cask cohort has the correct age: 1 day old.
 
 ## Farm
+The **Farm** object manages aspects about the farm and the environment.
+
+Attributes:
+- `kegs` (int): quantity of empty kegs
+- `jars` (int): quantity of empty produce jars
+- `casks` (int): quantity of empty casks
+- `plantSpace` (int): quantity of empty plantable farm space
+- `season` (string): current season
+- `dayOfSeason` (int): current day of season, 0-27
+- `daysLeftOfSeason` (int): number of *nights* (aging opportunities) remaining in season. Calculated as `27 - dayOfSeason`. On "Day 27" (2nd to last day of season, dayOfSeason = 26), there is 1 day left.
+- `daysLeftInSimulation` (int): (TODO: rename from `daysLeftOverall`) number of days left to simulate before calculating final profit
+- `minDaysLeft` (int): a convenience attribute that will be either the days left in the season or the days left in the simulation, whichever is sooner
+
+Methods:
+- `goToSleep`: (TODO: rename from `its2am`) configures the Farm for the next day by increasing the `dayOfSeason` and updating dependent attributes like "days left". Also updates `season` if needed. Run this method *after* aging cohorts for the night.
+
+## Calculating Profit
+
+
+
+### Selling Seeds
+Sell price: 0
+These are not worth much so we simplify to 0.
+
+### Selling Plants
+Sell price: 0
+Plants in the ground are not worth anything.
+
+### Selling Produce
+Tiller (Farming Lvl 5) Crops worth +10%
+
+- Base: `basePrice`
+- Silver: `Math.floor(basePrice * 1.25)`
+- Gold: `Math.floor(basePrice * 1.5)`
+- Iridium: `Math.floor(basePrice * 2)`
+
+Almanac crop data needed:
+- basePrice
+
+
+### Selling Artisan Goods
+Artisan (Farming Lvl 10) Goods worth +40%
+
+#### Produce Jar Cohorts
+`jarPrice`
+
+#### Keg and Cask Cohorts
+- Base: `kegPrice`
+- Silver: `Math.floor(kegPrice * 1.25)`
+- Gold: `Math.floor(kegPrice * 1.5)`
+- Iridium: `Math.floor(kegPrice * 2)`
+
+Almanac crop data needed:
+- kegPrice
 
 ## Almanac
+
+- `growthDays` (int):
+- `regrowthDays` (int):
+- `basePrice` (int):
+- `kegName` (string):
+- `kegPrice` (int):
+- `kegMinutes` (int):
+- `jarName` (string):
+- `jarPrice` (int);
+- `jarMinutes` (int):
+- `caskDays` (int):
+- `seasons` ([string]):
+
 
 
 ## Roadmap
